@@ -1,0 +1,56 @@
+name: Poetry SPDX Dependency Submission
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  dependency-submission:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Poetry
+        run: |
+          pip install poetry
+
+      - name: Export Poetry dependencies
+        run: |
+          poetry export \
+            --format requirements.txt \
+            --output requirements.txt \
+            --without-hashes
+
+      - name: Install Syft
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh \
+          | sh -s -- -b /usr/local/bin
+
+      - name: Generate SPDX SBOM
+        run: |
+          syft requirements.txt \
+            -o spdx-json=sbom.spdx.json
+
+      - name: Upload SPDX artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: poetry-spdx
+          path: sbom.spdx.json
+
+      # THIS UPDATES DEPENDENCY GRAPH
+      - name: Submit SPDX to GitHub Dependency Graph
+        uses: advanced-security/spdx-dependency-submission-action@v0.2.0
+        with:
+          filePath: sbom.spdx.json
