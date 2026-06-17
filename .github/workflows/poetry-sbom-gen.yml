@@ -62,8 +62,8 @@ jobs:
           name: poetry-spdx-sbom
           path: backend/sbom.spdx.json
 
-      - name: Update GitHub Dependency Graph
-        uses: advanced-security/spdx-dependency-submission-action@v0.2.0
+      - name: Submit component detection dependency snapshot
+        uses: advanced-security/component-detection-dependency-submission-action@main
         with:
           filePath: "."
-          filePattern: "sbom.spdx.json"
+          correlator: "chk"
