@@ -65,4 +65,5 @@ jobs:
       - name: Update GitHub Dependency Graph
         uses: advanced-security/spdx-dependency-submission-action@v0.2.0
         with:
-          filePath: backend/sbom.spdx.json
+          filePath: "."
+          filePattern: "sbom.spdx.json"
