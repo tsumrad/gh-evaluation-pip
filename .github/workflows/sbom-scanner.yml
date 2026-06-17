@@ -8,12 +8,13 @@ name: SBOM Scanner
   pull_request:
 
 permissions:
-   contents: read
+   contents: write
    security-events: write
+   pull-requests: write
    
 jobs:
   generate-sbom:
-    uses: tsumrad/gh-tools/.github/workflows/sbom-generation.yml@main
+    uses: tsumrad/gh-tools/.github/workflows/sbom-vulnerability-management.yml@feature/sbom-vulnerability-capture
     with:
       source_path: .
       enable_filesystem_scan: true
@@ -21,5 +22,3 @@ jobs:
       upload_artifacts: true
       artifact_prefix: sbom
       artifact_retention_days: 3
-    secrets:
-      PAT: ${{ secrets.GHA_TOKEN }}
