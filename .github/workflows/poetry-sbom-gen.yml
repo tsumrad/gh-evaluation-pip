@@ -35,35 +35,10 @@ jobs:
         run: |
           ls -la
           poetry --version
-          poetry check
-
-      - name: Export Poetry dependencies
-        working-directory: ${{ env.POETRY_DIR }}
-        run: |
-          poetry export \
-            --format requirements.txt \
-            --output requirements.txt \
-            --without-hashes
-
-      - name: Install Syft
-        run: |
-          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh \
-          | sh -s -- -b /usr/local/bin
-
-      - name: Generate SPDX SBOM
-        working-directory: ${{ env.POETRY_DIR }}
-        run: |
-          syft requirements.txt \
-            -o spdx-json=sbom.spdx.json
-
-      - name: Upload SPDX SBOM artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: poetry-spdx-sbom
-          path: backend/sbom.spdx.json
+          poetry check      
 
       - name: Submit component detection dependency snapshot
         uses: advanced-security/component-detection-dependency-submission-action@main
         with:
-          filePath: "."
+          detectorArgs: Poetry=EnableIfDefaultOff
           correlator: "chk"
