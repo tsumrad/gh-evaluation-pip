@@ -10,19 +10,15 @@ permissions:
   contents: write
 
 env:
-  POETRY_DIR: .
+  POETRY_DIR: backend
 
 jobs:
   dependency-submission:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Locate Poetry project
-        run: |
-          find . -name pyproject.toml -o -name poetry.lock
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -33,6 +29,13 @@ jobs:
         run: |
           pip install poetry
           poetry self add poetry-plugin-export
+
+      - name: Verify Poetry project
+        working-directory: ${{ env.POETRY_DIR }}
+        run: |
+          ls -la
+          poetry --version
+          poetry check
 
       - name: Export Poetry dependencies
         working-directory: ${{ env.POETRY_DIR }}
@@ -53,13 +56,13 @@ jobs:
           syft requirements.txt \
             -o spdx-json=sbom.spdx.json
 
-      - name: Upload SPDX artifact
+      - name: Upload SPDX SBOM artifact
         uses: actions/upload-artifact@v4
         with:
           name: poetry-spdx-sbom
-          path: ${{ env.POETRY_DIR }}/sbom.spdx.json
+          path: backend/sbom.spdx.json
 
       - name: Update GitHub Dependency Graph
         uses: advanced-security/spdx-dependency-submission-action@v0.2.0
         with:
-          filePath: ${{ env.POETRY_DIR }}/sbom.spdx.json
+          filePath: backend/sbom.spdx.json
