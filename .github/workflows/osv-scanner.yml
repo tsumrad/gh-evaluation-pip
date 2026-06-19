@@ -1,48 +1,47 @@
-name: OSV-Scanner
+name: OSV Scanner
 
 on:
-  workflow_dispatch:
-  pull_request:
-    branches: ["main"]
-  merge_group:
-    branches: ["main"]
   schedule:
-    - cron: '29 5 * * 2'
-  push:
-    branches: ["main"]
+    # Every Monday at 02:00 UTC
+    - cron: "0 2 * * 1"
+
+  workflow_dispatch:
 
 permissions:
-  security-events: write
   contents: read
-  pull-requests: write
+  security-events: write
 
 jobs:
-  scan-manual:
-    if: ${{ github.event_name == 'workflow_dispatch' }}
-    uses: "google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@1f1242919d8a60496dd1874b24b62b2370ed4c78"
-    with:
-      scan-args: |-
-        -r
-        --skip-git
-         --fail-on-vuln=false
-        ./
+  osv-scan:
+    name: OSV Dependency Scan
+    runs-on: ubuntu-latest
 
-  scan-scheduled:
-    if: ${{ github.event_name == 'push' || github.event_name == 'schedule' }}
-    uses: "google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@1f1242919d8a60496dd1874b24b62b2370ed4c78"
-    with:
-      scan-args: |-
-        -r
-        --skip-git
-         --fail-on-vuln=false
-        ./
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-  scan-pr:
-    if: ${{ github.event_name == 'pull_request' || github.event_name == 'merge_group' }}
-    uses: "google/osv-scanner-action/.github/workflows/osv-scanner-reusable-pr.yml@1f1242919d8a60496dd1874b24b62b2370ed4c78"
-    with:
-      scan-args: |-
-        -r
-        --skip-git
-        --fail-on-vuln=false
-        ./
+      - name: Install OSV Scanner
+        uses: google/osv-scanner-action/install@v1
+
+      - name: Run OSV Scanner
+        run: |
+          osv-scanner scan source \
+            -r . \
+            --format json \
+            --output osv-results.json
+
+      - name: Install osv-reporter
+        run: |
+          go install github.com/google/osv-scanner/v2/cmd/osv-reporter@latest
+
+      - name: Convert OSV results to SARIF
+        run: |
+          osv-reporter \
+            --new osv-results.json \
+            --output sarif:osv-results.sarif
+
+      - name: Upload OSV SARIF results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: osv-results.sarif
+          category: osv-scanner
