@@ -5,7 +5,6 @@ name: SBOM Scanner
   push:
     branches:
       - main
-  pull_request:
 
 permissions:
    contents: write
