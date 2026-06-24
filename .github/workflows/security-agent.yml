@@ -1,0 +1,27 @@
+name: Security Remediation Agent
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 2 * * 1"
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+  security-events: read
+
+jobs:
+
+  security-remediation:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - uses: actions/checkout@v4
+
+      - name: Run Security Agent
+        uses: github/copilot-agent-action@v1
+        with:
+          agent-file: .github/agents/security-remediation-agent.md
