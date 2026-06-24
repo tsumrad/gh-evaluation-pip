@@ -12,5 +12,4 @@ permissions:
 jobs:
   refresh:
     uses: tsumrad/gh-tools/.github/workflows/osv-scanner.yml@main
-    with:
-      scan-args: "-r --skip-git --format=sarif --output=osv-scanner-results.sarif --fail-on-vuln=false"
+   
